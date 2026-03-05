@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Church Bible Tracker</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body { font-family: 'Inter', sans-serif; }
+  .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+  .day-card { transition: all 0.3s; cursor: pointer; }
+  .day-card.active { background: #f59e0b; color: white; transform: scale(1.05); }
+</style>
+</head>
+<body class="bg-gray-50 p-4">
+
+<!-- Header -->
+<header class="gradient-bg text-white p-4 rounded-lg mb-6">
+  <h1 class="text-2xl font-bold">Church Bible Tracker</h1>
+  <p id="currentChapterDisplay" class="text-white/80 mt-1">Chapter: Matthew 1</p>
+</header>
+
+<!-- Submission Form -->
+<div class="bg-white rounded-xl shadow p-6 max-w-md mx-auto mb-6">
+  <h2 class="text-xl font-bold mb-4">Submit Reflection</h2>
+  <input type="text" id="studentName" placeholder="Your Name" class="w-full border p-2 rounded mb-3">
+  <textarea id="reflectionText" rows="5" placeholder="Write your reflection..." class="w-full border p-2 rounded mb-3"></textarea>
+  <button id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded flex items-center justify-center gap-2">
+    <i class="fas fa-paper-plane"></i> Submit Reflection
+  </button>
+</div>
+
+<!-- Admin Panel -->
+<div class="bg-white rounded-xl shadow p-6 max-w-md mx-auto">
+  <h2 class="text-xl font-bold mb-4"><i class="fas fa-users"></i> Admin View</h2>
+  <ul id="submissionList" class="space-y-2 text-gray-700 max-h-64 overflow-y-auto">
+    <li class="text-gray-400 text-center">No submissions yet</li>
+  </ul>
+</div>
+
+<script>
+// ======== STORAGE ========
+// Use localStorage for simplicity
+const STORAGE_KEY = "bibleTrackerSubmissions";
+
+// ======== CHAPTER AUTO ========
+const startDate = new Date("2026-03-05"); // change to your first chapter date
+const chapters = 28; // Matthew 1-28
+function getTodayChapter() {
+  const now = new Date();
+  const diffDays = Math.floor((now - startDate) / (1000 * 60 * 60 * 24));
+  const chapterNum = Math.min(diffDays + 1, chapters);
+  return chapterNum;
+}
+function updateChapterDisplay() {
+  const chapterNum = getTodayChapter();
+  document.getElementById("currentChapterDisplay").innerText = `Chapter: Matthew ${chapterNum}`;
+}
+updateChapterDisplay();
+
+// ======== SUBMISSIONS ========
+function loadSubmissions() {
+  const listEl = document.getElementById("submissionList");
+  const submissions = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  if(submissions.length === 0){
+    listEl.innerHTML = '<li class="text-gray-400 text-center">No submissions yet</li>';
+    return;
+  }
+  listEl.innerHTML = "";
+  submissions.forEach(sub => {
+    const li = document.createElement("li");
+    li.className = "border-b border-gray-200 py-2";
+    li.innerHTML = `<strong>${sub.name}</strong> - <em>Matthew ${sub.chapter}</em>: ${sub.reflection}`;
+    listEl.appendChild(li);
+  });
+}
+loadSubmissions();
+
+// ======== SUBMIT REFLECTION ========
+document.getElementById("submitBtn").addEventListener("click", ()=>{
+  const name = document.getElementById("studentName").value.trim();
+  const reflection = document.getElementById("reflectionText").value.trim();
+  if(!name || !reflection){
+    alert("Please enter your name and reflection");
+    return;
+  }
+  const submissions = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  const chapter = getTodayChapter();
+  submissions.push({name, reflection, chapter});
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(submissions));
+  document.getElementById("studentName").value = "";
+  document.getElementById("reflectionText").value = "";
+  loadSubmissions();
+  alert("Reflection submitted!");
+});
+</script>
+
+</body>
+</html>
